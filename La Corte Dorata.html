@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Corte Dorata</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(45deg, #000000, #333333, #000000); /* Colori oro più scuri e lucidi */
+            background-size: 300% 300%; /* Aumenta la dimensione del background per il movimento */
+            animation: gradient 10s ease infinite; /* Animazione del gradiente */
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .container {
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.9); /* Sfondo bianco traslucido per il contenitore */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+        .container:hover {
+            transform: scale(1.05);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            font-size: 26px;
+            margin-bottom: 20px;
+        }
+        input[type="text"], input[type="file"] {
+            width: calc(100% - 10px);
+            padding: 10px;
+            margin: 10px 0;
+            border: 2px solid #007bff;
+            border-radius: 5px;
+            transition: border-color 0.3s ease;
+        }
+        input[type="text"]:focus, input[type="file"]:focus {
+            border-color: #0056b3;
+            outline: none;
+        }
+        button {
+            padding: 10px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease;
+            width: 100%;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+        li {
+            padding: 15px;
+            margin: 5px 0;
+            background: #f9f9f9;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: background 0.3s ease;
+        }
+        li:hover {
+            background: #e9ecef;
+        }
+        .remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+        .remove:hover {
+            background: #c82333;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>La Corte Dorata</h1>
+
+    <form id="itemForm">
+        <input type="text" id="itemInput" placeholder="Aggiungi Furti" required>
+        <input type="file" id="fileInput" accept="*">
+        <button type="submit">Spedisci</button>
+    </form>
+    <ul id="itemList"></ul>
+</div>
+
+<script>
+    const itemForm = document.getElementById('itemForm');
+    const itemInput = document.getElementById('itemInput');
+    const fileInput = document.getElementById('fileInput');
+    const itemList = document.getElementById('itemList');
+
+    itemForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        const newItem = itemInput.value.trim();
+        const file = fileInput.files[0];
+
+        if (newItem) {
+            addItemToList(newItem, file);
+            saveItemToLocalStorage(newItem, file);
+            itemInput.value = ''; // Resetta il campo input
+            fileInput.value = ''; // Resetta il campo file
+        }
+    });
+
+    function addItemToList(item, file) {
+        const li = document.createElement('li');
+        li.textContent = item;
+
+        if (file) {
+            const fileLink = document.createElement('a');
+            fileLink.textContent = file.name;
+            fileLink.href = URL.createObjectURL(file);
+            fileLink.target = '_blank'; // Apri il file in una nuova scheda
+            li.appendChild(fileLink);
+        }
+
+        const removeButton = document.createElement('button');
+        removeButton.textContent = 'Rimuovi';
+        removeButton.classList.add('remove');
+        removeButton.onclick = function() {
+            itemList.removeChild(li);
+            removeItemFromLocalStorage(item);
+        };
+
+        li.appendChild(removeButton);
+        itemList.appendChild(li);
+    }
+
+    function loadItems() {
+        const items = JSON.parse(localStorage.getItem('items')) || [];
+        items.forEach(({ name, fileName }) => {
+            const file = fileName ? new File([], fileName) : null; // Placeholder per il file
+            addItemToList(name, file);
+        });
+    }
+
+    function saveItemToLocalStorage(item, file) {
+        const items = JSON.parse(localStorage.getItem('items')) || [];
+        items.push({ name: item, fileName: file ? file.name : null });
+        localStorage.setItem('items', JSON.stringify(items));
+    }
+
+    function removeItemFromLocalStorage(item) {
+        let items = JSON.parse(localStorage.getItem('items')) || [];
+        items = items.filter(i => i.name !== item);
+        localStorage.setItem('items', JSON.stringify(items));
+    }
+
+    document.addEventListener('DOMContentLoaded', loadItems);
+</script>
+
+</body>
+</html>
